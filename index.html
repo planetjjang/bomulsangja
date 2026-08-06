@@ -3,23 +3,28 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>자물쇠함 — 비밀번호로 잠그는 파일 보관함</title>
+<title>보물상자</title>
+
+<!-- 크롬 탭 파비콘 (보물상자 아이콘) -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23d4af37'%3E%3Cpath d='M5 4h14a2 2 0 0 1 2 2v3H3V6a2 2 0 0 1 2-2zm-2 7h18v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7zm8 2v2h2v-2h-2z'/%3E%3C/svg%3E">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --ink: #12151c;
-    --panel: #1c212b;
-    --panel-raised: #232a36;
-    --brass: #c79a56;
-    --brass-bright: #e3b96f;
-    --paper: #ede7da;
-    --mute: #8890a0;
+    --bg-dark: #e6ded5; /* 전체 웹페이지 밝은 배경 */
+    --panel: #1e1915; /* 카드 박스 어두운 배경 */
+    --panel-raised: #28221c; /* 드롭존, 입력창 어두운 배경 */
+    --gold-dark: #8c6d31;
+    --gold: #d4af37;
+    --gold-bright: #f3e5ab;
+    --paper: #f4eae1;
+    --mute: #b3a598;
     --rust: #c1594b;
     --rust-bright: #d97767;
-    --sage: #7ea28c;
-    --line: rgba(199,154,86,0.28);
+    --emerald: #508068;
+    --line: rgba(212, 175, 55, 0.35);
     --radius: 14px;
   }
 
@@ -29,9 +34,9 @@
     margin:0;
     padding:0;
     background:
-      radial-gradient(circle at 50% -10%, rgba(199,154,86,0.10), transparent 45%),
-      radial-gradient(circle at 100% 100%, rgba(126,162,140,0.06), transparent 40%),
-      var(--ink);
+      radial-gradient(circle at 50% -10%, rgba(212,175,55,0.15), transparent 50%),
+      radial-gradient(circle at 100% 100%, rgba(80,128,104,0.08), transparent 40%),
+      var(--bg-dark);
     color: var(--paper);
     font-family: 'IBM Plex Sans KR', sans-serif;
     min-height: 100vh;
@@ -47,37 +52,33 @@
   .brand{
     display:flex;
     align-items:center;
-    gap:10px;
+    gap:12px;
     margin-bottom: 40px;
     user-select:none;
   }
-  .brand .dial{
-    width:30px; height:30px;
-    border-radius:50%;
-    border: 2px solid var(--brass);
-    position:relative;
+  .brand .chest-icon{
+    width:36px; height:36px;
+    background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 4h14a2 2 0 0 1 2 2v3H3V6a2 2 0 0 1 2-2zm-2 7h18v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7zm8 2v2h2v-2h-2z'/%3E%3C/svg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 4h14a2 2 0 0 1 2 2v3H3V6a2 2 0 0 1 2-2zm-2 7h18v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7zm8 2v2h2v-2h-2z'/%3E%3C/svg%3E");
+    mask-repeat: no-repeat;
+    -webkit-mask-repeat: no-repeat;
     flex-shrink:0;
   }
-  .brand .dial::after{
-    content:"";
-    position:absolute;
-    top:3px; left:50%;
-    width:2px; height:9px;
-    background: var(--brass);
-    transform: translateX(-50%);
-  }
   .brand span{
-    font-family:'Space Grotesk', sans-serif;
+    font-family:'Cinzel', 'IBM Plex Sans KR', serif;
     font-weight:700;
-    font-size:20px;
+    font-size:24px;
     letter-spacing: -0.01em;
+    color: #3d3126;
+    text-shadow: 0 0 10px rgba(212, 175, 55, 0.2);
   }
   .brand small{
     display:block;
     font-family:'IBM Plex Mono', monospace;
-    font-size:11px;
-    color: var(--mute);
-    letter-spacing: 0.06em;
+    font-size:10.5px;
+    color: #7a6e63;
+    letter-spacing: 0.1em;
     margin-top:2px;
     font-weight:400;
   }
@@ -90,32 +91,34 @@
     border-radius: var(--radius);
     border: 1px solid var(--line);
     padding: 32px 28px;
-    box-shadow: 0 30px 60px -20px rgba(0,0,0,0.55);
+    box-shadow: 0 20px 40px -15px rgba(0,0,0,0.4);
   }
   .panel::before, .panel::after,
   .panel .corner-l, .panel .corner-r{
     content:"";
     position:absolute;
     width:16px; height:16px;
-    border-color: var(--brass);
-    opacity:0.55;
+    border-color: var(--gold);
+    opacity:0.75;
   }
   .panel::before{ top:8px; left:8px; border-top:2px solid; border-left:2px solid; }
   .panel::after{ top:8px; right:8px; border-top:2px solid; border-right:2px solid; }
-  .panel .corner-l{ bottom:8px; left:8px; border-bottom:2px solid var(--brass); border-left:2px solid var(--brass); }
-  .panel .corner-r{ bottom:8px; right:8px; border-bottom:2px solid var(--brass); border-right:2px solid var(--brass); }
+  .panel .corner-l{ bottom:8px; left:8px; border-bottom:2px solid var(--gold); border-left:2px solid var(--gold); }
+  .panel .corner-r{ bottom:8px; right:8px; border-bottom:2px solid var(--gold); border-right:2px solid var(--gold); }
 
   h1{
-    font-family:'Space Grotesk', sans-serif;
+    font-family:'Cinzel', 'IBM Plex Sans KR', serif;
     font-size: 22px;
-    margin: 0 0 6px;
-    font-weight:600;
+    margin: 0 0 8px;
+    font-weight:700;
+    color: var(--gold-bright);
   }
   h2{
-    font-family:'Space Grotesk', sans-serif;
-    font-size: 17px;
+    font-family:'Cinzel', 'IBM Plex Sans KR', serif;
+    font-size: 18px;
     margin: 0;
-    font-weight:600;
+    font-weight:700;
+    color: #3d3126;
   }
   .sub{
     color: var(--mute);
@@ -127,7 +130,7 @@
   .dropzone{
     border: 1.5px dashed var(--line);
     border-radius: 10px;
-    padding: 26px 16px;
+    padding: 28px 16px;
     text-align:center;
     cursor:pointer;
     transition: border-color .15s, background .15s;
@@ -135,18 +138,18 @@
     position:relative;
   }
   .dropzone:hover, .dropzone.drag{
-    border-color: var(--brass);
-    background: #262d3a;
+    border-color: var(--gold);
+    background: #342c24;
   }
   .dropzone .slot{
-    width:46px; height:8px;
-    border-radius: 4px;
-    background: var(--brass);
-    opacity:0.85;
+    width:36px; height:6px;
+    border-radius: 3px;
+    background: var(--gold);
+    box-shadow: 0 0 8px var(--gold);
     margin: 0 auto 14px;
   }
   .dropzone p{ margin:0; font-size:13.5px; color: var(--paper); }
-  .dropzone p.file-name{ color: var(--brass-bright); font-family:'IBM Plex Mono', monospace; font-size:12.5px; word-break:break-all; }
+  .dropzone p.file-name{ color: var(--gold-bright); font-family:'IBM Plex Mono', monospace; font-size:12.5px; word-break:break-all; }
   .dropzone span{ display:block; margin-top:4px; font-size:12px; color: var(--mute); }
   input[type=file]{ display:none; }
 
@@ -169,10 +172,11 @@
     font-size: 15px;
     letter-spacing: 0.12em;
     outline: none;
-    transition: border-color .15s;
+    transition: border-color .15s, box-shadow .15s;
   }
   input[type=password]:focus, input[type=text]:focus{
-    border-color: var(--brass);
+    border-color: var(--gold);
+    box-shadow: 0 0 6px rgba(212, 175, 55, 0.3);
   }
 
   .btn{
@@ -181,15 +185,19 @@
     padding: 13px 16px;
     border-radius: 8px;
     border: none;
-    background: var(--brass);
-    color: #1a1508;
-    font-weight:600;
+    background: linear-gradient(135deg, var(--gold-bright), var(--gold));
+    color: #120e08;
+    font-weight:700;
     font-size: 14.5px;
     cursor:pointer;
-    transition: background .15s, transform .1s, opacity .15s;
+    transition: background .15s, transform .1s, opacity .15s, box-shadow .15s;
     font-family: 'IBM Plex Sans KR', sans-serif;
+    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.2);
   }
-  .btn:hover:not(:disabled){ background: var(--brass-bright); }
+  .btn:hover:not(:disabled){
+    background: linear-gradient(135deg, #ffffff, var(--gold-bright));
+    box-shadow: 0 4px 16px rgba(212, 175, 55, 0.4);
+  }
   .btn:active:not(:disabled){ transform: scale(0.99); }
   .btn:disabled{ opacity:0.5; cursor:not-allowed; }
 
@@ -197,8 +205,9 @@
     background: transparent;
     border: 1px solid var(--line);
     color: var(--paper);
+    box-shadow: none;
   }
-  .btn.secondary:hover:not(:disabled){ border-color: var(--rust); color: var(--rust-bright); background: rgba(193,89,75,0.08); }
+  .btn.secondary:hover:not(:disabled){ border-color: var(--rust); color: var(--rust-bright); background: rgba(193,89,75,0.12); }
 
   .btn-row{ display:flex; gap:10px; margin-top:14px; }
   .btn-row .btn{ margin-top:0; }
@@ -212,21 +221,21 @@
     display:none;
   }
   .msg.show{ display:block; }
-  .msg.error{ background: rgba(193,89,75,0.12); color: var(--rust-bright); border:1px solid rgba(193,89,75,0.3); }
-  .msg.success{ background: rgba(126,162,140,0.12); color: var(--sage); border:1px solid rgba(126,162,140,0.3); }
+  .msg.error{ background: rgba(193,89,75,0.15); color: var(--rust-bright); border:1px solid rgba(193,89,75,0.3); }
+  .msg.success{ background: rgba(80,128,104,0.2); color: #9ed4b7; border:1px solid rgba(80,128,104,0.4); }
 
   /* ---- locker list ---- */
   .locker-section{ margin-top: 36px; }
   .locker-head{
     display:flex;
     align-items:baseline;
-    justify-content:space-between;
+    justify-space-between;
     padding: 0 4px 14px;
   }
   .locker-count{
     font-family:'IBM Plex Mono', monospace;
     font-size:11.5px;
-    color: var(--mute);
+    color: #6e6256;
   }
 
   .list-empty{
@@ -236,6 +245,7 @@
     padding: 30px 20px;
     border: 1px dashed var(--line);
     border-radius:10px;
+    background: var(--panel);
   }
 
   .list-item{
@@ -244,6 +254,7 @@
     margin-bottom:10px;
     background: var(--panel);
     overflow:hidden;
+    box-shadow: 0 10px 25px -10px rgba(0,0,0,0.3);
   }
   .list-item-head{
     display:flex;
@@ -261,7 +272,7 @@
     display:flex; align-items:center; justify-content:center;
     font-family:'IBM Plex Mono', monospace;
     font-size:11px;
-    color: var(--brass-bright);
+    color: var(--gold-bright);
     flex-shrink:0;
   }
   .list-item-info{ flex:1; min-width:0; }
@@ -284,7 +295,7 @@
     transition: transform .15s, color .15s;
     flex-shrink:0;
   }
-  .list-item.open .list-item-chevron{ transform: rotate(90deg); color: var(--brass); }
+  .list-item.open .list-item-chevron{ transform: rotate(90deg); color: var(--gold); }
 
   .list-item-body{
     max-height:0;
@@ -298,7 +309,7 @@
   footer{
     margin-top: 34px;
     font-size:11.5px;
-    color: var(--mute);
+    color: #6e6256;
     text-align:center;
     max-width:460px;
     line-height:1.6;
@@ -314,10 +325,10 @@
 <body>
 
   <div class="brand">
-    <div class="dial"></div>
+    <div class="chest-icon"></div>
     <div>
-      <span>자물쇠함</span>
-      <small>PASSWORD-LOCKED FILE DROP</small>
+      <span>보물상자</span>
+      <small>FILE TREASURE CHEST</small>
     </div>
   </div>
 
@@ -326,12 +337,12 @@
     <!-- ============ 업로드 패널 ============ -->
     <section class="panel">
       <div class="corner-l"></div><div class="corner-r"></div>
-      <h1>파일을 넣고 잠그세요</h1>
-      <p class="sub">파일을 올리고 비밀번호를 정하면 보관함 목록에 추가돼요. 목록에서 파일을 고르고 같은 비밀번호를 입력하면 누구든 열어볼 수 있어요.</p>
+      <h1>파일 보관하기</h1>
+      <p class="sub">파일을 올리고 비밀번호를 설정하면 보물상자에 보관돼요. 동일한 비밀번호를 입력하면 언제든 다운로드할 수 있습니다.</p>
 
       <div class="dropzone" id="dropzone">
         <div class="slot"></div>
-        <p id="dropzone-text">클릭하거나 파일을 끌어다 놓으세요</p>
+        <p id="dropzone-text">파일을 끌어오거나 클릭하여 선택하세요</p>
         <span id="dropzone-sub">최대 50MB</span>
         <input type="file" id="file-input" />
       </div>
@@ -339,7 +350,7 @@
       <label class="field-label">비밀번호 (4자 이상)</label>
       <input type="password" id="upload-password" placeholder="••••••••" autocomplete="new-password" />
 
-      <button class="btn" id="upload-btn">넣고 잠그기</button>
+      <button class="btn" id="upload-btn">보물상자에 넣기</button>
 
       <div class="msg" id="upload-msg"></div>
     </section>
@@ -347,7 +358,7 @@
     <!-- ============ 보관함 목록 ============ -->
     <section class="locker-section">
       <div class="locker-head">
-        <h2>보관함</h2>
+        <h2>보관함 목록</h2>
         <span class="locker-count" id="locker-count">불러오는 중…</span>
       </div>
       <div id="locker-list"></div>
@@ -356,8 +367,8 @@
   </main>
 
   <footer>
-    비밀번호는 서버에 원문으로 저장되지 않고 해시로만 저장돼요.<br>
-    파일은 비밀번호를 아는 사람만 꺼내거나 치울 수 있어요.
+    비밀번호는 서버에 원문으로 저장되지 않고 안전하게 암호화(해시)돼요.<br>
+    비밀번호를 아는 사람만 파일을 열거나 삭제할 수 있습니다.
   </footer>
 
 <script>
@@ -420,7 +431,7 @@
     function resetDropzone(){
       selectedFile = null;
       fileInput.value = "";
-      dzText.textContent = "클릭하거나 파일을 끌어다 놓으세요";
+      dzText.textContent = "파일을 끌어오거나 클릭하여 선택하세요";
       dzText.classList.remove("file-name");
       dzSub.textContent = "최대 50MB";
     }
@@ -431,20 +442,20 @@
       const password = passwordInput.value;
 
       if (!selectedFile){
-        showMsg(msg, "파일을 먼저 선택해주세요.", "error");
+        showMsg(msg, "보관할 파일을 먼저 선택해주세요.", "error");
         return;
       }
       if (password.length < 4){
-        showMsg(msg, "비밀번호는 4자 이상으로 정해주세요.", "error");
+        showMsg(msg, "비밀번호는 4자 이상으로 설정해주세요.", "error");
         return;
       }
       if (selectedFile.size > MAX_BYTES){
-        showMsg(msg, "파일이 너무 커요. 최대 50MB까지 올릴 수 있어요.", "error");
+        showMsg(msg, "파일 크기가 너무 큽니다. 최대 50MB까지 가능합니다.", "error");
         return;
       }
 
       uploadBtn.disabled = true;
-      uploadBtn.textContent = "넣는 중…";
+      uploadBtn.textContent = "보관하는 중…";
 
       try{
         const fd = new FormData();
@@ -459,19 +470,19 @@
         const data = await res.json();
 
         if (!res.ok || data.error){
-          showMsg(msg, data.error || "업로드에 실패했어요.", "error");
+          showMsg(msg, data.error || "업로드에 실패했습니다.", "error");
           return;
         }
 
-        showMsg(msg, "보관함에 넣고 잠갔어요. 아래 목록에서 확인하세요.", "success");
+        showMsg(msg, "보물상자에 안전하게 보관되었습니다.", "success");
         resetDropzone();
         passwordInput.value = "";
         loadList();
       } catch(e){
-        showMsg(msg, "네트워크 오류가 발생했어요. 잠시 후 다시 시도해주세요.", "error");
+        showMsg(msg, "네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.", "error");
       } finally {
         uploadBtn.disabled = false;
-        uploadBtn.textContent = "넣고 잠그기";
+        uploadBtn.textContent = "보물상자에 넣기";
       }
     });
   }
@@ -493,7 +504,7 @@
         listEl.innerHTML = "";
         const empty = document.createElement("div");
         empty.className = "list-empty";
-        empty.textContent = "목록을 불러오지 못했어요.";
+        empty.textContent = "목록을 불러오지 못했습니다.";
         listEl.appendChild(empty);
         return;
       }
@@ -504,7 +515,7 @@
       listEl.innerHTML = "";
       const empty = document.createElement("div");
       empty.className = "list-empty";
-      empty.textContent = "네트워크 오류로 목록을 불러오지 못했어요.";
+      empty.textContent = "네트워크 오류로 목록을 불러오지 못했습니다.";
       listEl.appendChild(empty);
     }
   }
@@ -512,13 +523,13 @@
   function renderList(items){
     const countEl = $("locker-count");
     const listEl = $("locker-list");
-    countEl.textContent = `${items.length}개`;
+    countEl.textContent = `총 ${items.length}개`;
     listEl.innerHTML = "";
 
     if (items.length === 0){
       const empty = document.createElement("div");
       empty.className = "list-empty";
-      empty.textContent = "아직 보관함이 비어있어요. 위에서 파일을 넣어보세요.";
+      empty.textContent = "보관함이 비어있습니다. 위에서 첫 파일을 보관해보세요.";
       listEl.appendChild(empty);
       return;
     }
@@ -533,7 +544,7 @@
     wrap.className = "list-item";
     wrap.dataset.id = item.id;
 
-    // ---- head (클릭해서 펼치기) ----
+    // ---- head ----
     const head = document.createElement("div");
     head.className = "list-item-head";
 
@@ -545,7 +556,7 @@
     info.className = "list-item-info";
     const fname = document.createElement("div");
     fname.className = "fname";
-    fname.textContent = item.filename; // textContent로만 넣어서 XSS 방지
+    fname.textContent = item.filename;
     const fmeta = document.createElement("div");
     fmeta.className = "fmeta";
     fmeta.textContent = `${formatSize(item.size || 0)} · ${formatDate(item.created_at)}`;
@@ -560,7 +571,7 @@
     head.appendChild(info);
     head.appendChild(chevron);
 
-    // ---- body (비밀번호 + 다운로드/삭제) ----
+    // ---- body ----
     const body = document.createElement("div");
     body.className = "list-item-body";
 
@@ -581,11 +592,11 @@
 
     const downloadBtn = document.createElement("button");
     downloadBtn.className = "btn";
-    downloadBtn.textContent = "꺼내기 (다운로드)";
+    downloadBtn.textContent = "다운로드";
 
     const deleteBtn = document.createElement("button");
     deleteBtn.className = "btn secondary";
-    deleteBtn.textContent = "치우기 (삭제)";
+    deleteBtn.textContent = "삭제하기";
 
     btnRow.appendChild(downloadBtn);
     btnRow.appendChild(deleteBtn);
@@ -604,7 +615,6 @@
 
     head.addEventListener("click", () => {
       const isOpen = wrap.classList.contains("open");
-      // 아코디언: 하나만 펼쳐지게
       document.querySelectorAll(".list-item.open").forEach((el) => {
         if (el !== wrap) el.classList.remove("open");
       });
@@ -630,16 +640,16 @@
         });
         const data = await res.json();
         if (!res.ok || data.error){
-          showMsg(itemMsg, data.error || "비밀번호가 올바르지 않아요.", "error");
+          showMsg(itemMsg, data.error || "비밀번호가 올바르지 않습니다.", "error");
           return;
         }
-        showMsg(itemMsg, `"${data.filename}" 다운로드를 시작해요.`, "success");
+        showMsg(itemMsg, `"${data.filename}" 다운로드를 시작합니다.`, "success");
         window.location.href = data.url;
       } catch(e){
-        showMsg(itemMsg, "네트워크 오류가 발생했어요.", "error");
+        showMsg(itemMsg, "네트워크 오류가 발생했습니다.", "error");
       } finally {
         downloadBtn.disabled = false;
-        downloadBtn.textContent = "꺼내기 (다운로드)";
+        downloadBtn.textContent = "다운로드";
       }
     });
 
@@ -651,12 +661,12 @@
         showMsg(itemMsg, "비밀번호를 입력해주세요.", "error");
         return;
       }
-      if (!confirm(`"${item.filename}"을(를) 보관함에서 치울까요? 되돌릴 수 없어요.`)){
+      if (!confirm(`"${item.filename}" 파일을 삭제하시겠습니까?`)){
         return;
       }
       deleteBtn.disabled = true;
       downloadBtn.disabled = true;
-      deleteBtn.textContent = "치우는 중…";
+      deleteBtn.textContent = "삭제 중…";
       try{
         const res = await fetch(`${FN_BASE}/delete`, {
           method: "POST",
@@ -665,18 +675,18 @@
         });
         const data = await res.json();
         if (!res.ok || data.error){
-          showMsg(itemMsg, data.error || "비밀번호가 올바르지 않아요.", "error");
+          showMsg(itemMsg, data.error || "비밀번호가 올바르지 않습니다.", "error");
           deleteBtn.disabled = false;
           downloadBtn.disabled = false;
-          deleteBtn.textContent = "치우기 (삭제)";
+          deleteBtn.textContent = "삭제하기";
           return;
         }
         loadList();
       } catch(e){
-        showMsg(itemMsg, "네트워크 오류가 발생했어요.", "error");
+        showMsg(itemMsg, "네트워크 오류가 발생했습니다.", "error");
         deleteBtn.disabled = false;
         downloadBtn.disabled = false;
-        deleteBtn.textContent = "치우기 (삭제)";
+        deleteBtn.textContent = "삭제하기";
       }
     });
 
