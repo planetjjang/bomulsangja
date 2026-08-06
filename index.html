@@ -1,1 +1,210 @@
 
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🔒 보안 파일 공유 보관함</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: #f8fafc; color: #1e293b; padding: 20px; display: flex; justify-content: center; }
+    .container { width: 100%; max-width: 800px; display: flex; flex-direction: column; gap: 24px; }
+    .card { background: #ffffff; border-radius: 12px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
+    h1 { font-size: 1.5rem; color: #0f172a; margin-bottom: 8px; }
+    h2 { font-size: 1.2rem; color: #334155; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; }
+    .form-group { margin-bottom: 16px; display: flex; flex-direction: column; gap: 6px; }
+    label { font-size: 0.9rem; font-weight: 600; color: #475569; }
+    input[type="file"], input[type="password"], input[type="text"] { padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.95rem; outline: none; }
+    input:focus { border-color: #2563eb; ring: 2px #93c5fd; }
+    .btn { padding: 10px 16px; border: none; border-radius: 6px; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+    .btn-primary { background-color: #2563eb; color: white; }
+    .btn-primary:hover { background-color: #1d4ed8; }
+    .btn-danger { background-color: #ef4444; color: white; padding: 6px 12px; font-size: 0.85rem; }
+    .btn-danger:hover { background-color: #dc2626; }
+    .btn-download { background-color: #10b981; color: white; padding: 6px 12px; font-size: 0.85rem; }
+    .btn-download:hover { background-color: #059669; }
+    .file-list { display: flex; flex-direction: column; gap: 12px; }
+    .file-item { display: flex; align-items: center; justify-content: space-between; padding: 16px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; }
+    .file-info { display: flex; flex-direction: column; gap: 4px; }
+    .file-name { font-weight: 600; font-size: 1rem; color: #0f172a; }
+    .file-meta { font-size: 0.8rem; color: #64748b; }
+    .file-actions { display: flex; gap: 8px; align-items: center; }
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; }
+    .modal.active { display: flex; }
+    .modal-content { background: white; padding: 24px; border-radius: 12px; width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 16px; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>🔒 암호화 파일 공유 보관함</h1>
+
+  <!-- 파일 업로드 카드 -->
+  <div class="card">
+    <h2>📤 새로운 파일 올리기</h2>
+    <form id="uploadForm">
+      <div class="form-group">
+        <label for="fileInput">파일 선택</label>
+        <input type="file" id="fileInput" required />
+      </div>
+      <div class="form-group">
+        <label for="downloadPw">다운로드용 비밀번호</label>
+        <input type="password" id="downloadPw" placeholder="다른 사람이 다운로드할 때 입력할 암호" required />
+      </div>
+      <div class="form-group">
+        <label for="deletePw">관리/삭제용 비밀번호</label>
+        <input type="password" id="deletePw" placeholder="올린 사람이 파일을 삭제할 때 입력할 암호" required />
+      </div>
+      <button type="submit" class="btn btn-primary">파일 암호화 및 업로드</button>
+    </form>
+  </div>
+
+  <!-- 저장된 파일 목록 카드 -->
+  <div class="card">
+    <h2>📁 저장된 파일 목록</h2>
+    <div id="fileList" class="file-list">
+      <p style="color: #64748b; text-align: center;">등록된 파일이 없습니다.</p>
+    </div>
+  </div>
+</div>
+
+<!-- 비밀번호 입력 모달 -->
+<div id="pwModal" class="modal">
+  <div class="modal-content">
+    <h3 id="modalTitle">비밀번호 입력</h3>
+    <input type="password" id="modalPwInput" placeholder="비밀번호를 입력하세요" autofocus />
+    <div style="display:flex; justify-content:flex-end; gap:8px;">
+      <button class="btn" style="background:#cbd5e1;" onclick="closeModal()">취소</button>
+      <button id="modalConfirmBtn" class="btn btn-primary">확인</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let filesData = JSON.parse(localStorage.getItem('encrypted_files') || '[]');
+
+  const uploadForm = document.getElementById('uploadForm');
+  const fileListEl = document.getElementById('fileList');
+  const pwModal = document.getElementById('pwModal');
+  const modalPwInput = document.getElementById('modalPwInput');
+  const modalConfirmBtn = document.getElementById('modalConfirmBtn');
+  const modalTitle = document.getElementById('modalTitle');
+
+  let currentAction = null;
+  let targetFileId = null;
+
+  renderFileList();
+
+  uploadForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const file = document.getElementById('fileInput').files[0];
+    const downloadPw = document.getElementById('downloadPw').value;
+    const deletePw = document.getElementById('deletePw').value;
+
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+      const newFile = {
+        id: Date.now().toString(),
+        name: file.name,
+        size: formatBytes(file.size),
+        uploadDate: new Date().toLocaleDateString('ko-KR'),
+        downloadPw: downloadPw,
+        deletePw: deletePw,
+        dataUrl: evt.target.result
+      };
+
+      filesData.push(newFile);
+      localStorage.setItem('encrypted_files', JSON.stringify(filesData));
+      alert('파일이 성공적으로 업로드되었습니다!');
+      uploadForm.reset();
+      renderFileList();
+    };
+    reader.readAsDataURL(file);
+  });
+
+  function renderFileList() {
+    if (filesData.length === 0) {
+      fileListEl.innerHTML = '<p style="color: #64748b; text-align: center;">등록된 파일이 없습니다.</p>';
+      return;
+    }
+
+    fileListEl.innerHTML = filesData.map(file => `
+      <div class="file-item">
+        <div class="file-info">
+          <span class="file-name">📄 ${escapeHtml(file.name)}</span>
+          <span class="file-meta">용량: ${file.size} | 등록일: ${file.uploadDate}</span>
+        </div>
+        <div class="file-actions">
+          <button class="btn btn-download" onclick="openModal('download', '${file.id}')">다운로드</button>
+          <button class="btn btn-danger" onclick="openModal('delete', '${file.id}')">삭제</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function openModal(action, fileId) {
+    currentAction = action;
+    targetFileId = fileId;
+    modalPwInput.value = '';
+    modalTitle.textContent = action === 'download' ? '🔓 다운로드 비밀번호' : '🗑️ 삭제 비밀번호';
+    pwModal.classList.add('active');
+    modalPwInput.focus();
+  }
+
+  function closeModal() {
+    pwModal.classList.remove('active');
+    currentAction = null;
+    targetFileId = null;
+  }
+
+  modalConfirmBtn.addEventListener('click', () => {
+    const enteredPw = modalPwInput.value;
+    const targetFile = filesData.find(f => f.id === targetFileId);
+
+    if (!targetFile) {
+      alert('파일을 찾을 수 없습니다.');
+      closeModal();
+      return;
+    }
+
+    if (currentAction === 'download') {
+      if (enteredPw === targetFile.downloadPw) {
+        const a = document.createElement('a');
+        a.href = targetFile.dataUrl;
+        a.download = targetFile.name;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        closeModal();
+      } else {
+        alert('다운로드 비밀번호가 일치하지 않습니다!');
+      }
+    } else if (currentAction === 'delete') {
+      if (enteredPw === targetFile.deletePw) {
+        filesData = filesData.filter(f => f.id !== targetFileId);
+        localStorage.setItem('encrypted_files', JSON.stringify(filesData));
+        alert('파일이 삭제되었습니다.');
+        closeModal();
+        renderFileList();
+      } else {
+        alert('삭제 비밀번호가 일치하지 않습니다!');
+      }
+    }
+  });
+
+  function formatBytes(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
+  function escapeHtml(text) {
+    return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+</script>
+</body>
+</html>
