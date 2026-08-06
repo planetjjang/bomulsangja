@@ -1,129 +1,603 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <title>Supabase File Share</title>
-  <!-- Supabase JS Client CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>자물쇠함 — 비밀번호로 잠그는 파일 보관함</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink: #12151c;
+    --panel: #1c212b;
+    --panel-raised: #232a36;
+    --brass: #c79a56;
+    --brass-bright: #e3b96f;
+    --paper: #ede7da;
+    --mute: #8890a0;
+    --rust: #c1594b;
+    --rust-bright: #d97767;
+    --sage: #7ea28c;
+    --line: rgba(199,154,86,0.28);
+    --radius: 14px;
+  }
+
+  *{ box-sizing: border-box; }
+
+  html,body{
+    margin:0;
+    padding:0;
+    background:
+      radial-gradient(circle at 50% -10%, rgba(199,154,86,0.10), transparent 45%),
+      radial-gradient(circle at 100% 100%, rgba(126,162,140,0.06), transparent 40%),
+      var(--ink);
+    color: var(--paper);
+    font-family: 'IBM Plex Sans KR', sans-serif;
+    min-height: 100vh;
+  }
+
+  body{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding: 48px 20px 80px;
+  }
+
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom: 40px;
+    user-select:none;
+  }
+  .brand .dial{
+    width:30px; height:30px;
+    border-radius:50%;
+    border: 2px solid var(--brass);
+    position:relative;
+    flex-shrink:0;
+  }
+  .brand .dial::after{
+    content:"";
+    position:absolute;
+    top:3px; left:50%;
+    width:2px; height:9px;
+    background: var(--brass);
+    transform: translateX(-50%);
+  }
+  .brand span{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:700;
+    font-size:20px;
+    letter-spacing: -0.01em;
+  }
+  .brand small{
+    display:block;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    color: var(--mute);
+    letter-spacing: 0.06em;
+    margin-top:2px;
+    font-weight:400;
+  }
+
+  main{ width:100%; max-width: 460px; }
+
+  .panel{
+    position:relative;
+    background: var(--panel);
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    padding: 32px 28px;
+    box-shadow: 0 30px 60px -20px rgba(0,0,0,0.55);
+  }
+  .panel::before, .panel::after,
+  .panel .corner-l, .panel .corner-r{
+    content:"";
+    position:absolute;
+    width:16px; height:16px;
+    border-color: var(--brass);
+    opacity:0.55;
+  }
+  .panel::before{ top:8px; left:8px; border-top:2px solid; border-left:2px solid; }
+  .panel::after{ top:8px; right:8px; border-top:2px solid; border-right:2px solid; }
+  .panel .corner-l{ bottom:8px; left:8px; border-bottom:2px solid var(--brass); border-left:2px solid var(--brass); }
+  .panel .corner-r{ bottom:8px; right:8px; border-bottom:2px solid var(--brass); border-right:2px solid var(--brass); }
+
+  h1{
+    font-family:'Space Grotesk', sans-serif;
+    font-size: 22px;
+    margin: 0 0 6px;
+    font-weight:600;
+  }
+  .sub{
+    color: var(--mute);
+    font-size: 13.5px;
+    margin: 0 0 26px;
+    line-height:1.5;
+  }
+
+  .dropzone{
+    border: 1.5px dashed var(--line);
+    border-radius: 10px;
+    padding: 26px 16px;
+    text-align:center;
+    cursor:pointer;
+    transition: border-color .15s, background .15s;
+    background: var(--panel-raised);
+    position:relative;
+  }
+  .dropzone:hover, .dropzone.drag{
+    border-color: var(--brass);
+    background: #262d3a;
+  }
+  .dropzone .slot{
+    width:46px; height:8px;
+    border-radius: 4px;
+    background: var(--brass);
+    opacity:0.85;
+    margin: 0 auto 14px;
+  }
+  .dropzone p{ margin:0; font-size:13.5px; color: var(--paper); }
+  .dropzone p.file-name{ color: var(--brass-bright); font-family:'IBM Plex Mono', monospace; font-size:12.5px; word-break:break-all; }
+  .dropzone span{ display:block; margin-top:4px; font-size:12px; color: var(--mute); }
+  input[type=file]{ display:none; }
+
+  label.field-label{
+    display:block;
+    font-size:12px;
+    color: var(--mute);
+    margin: 20px 0 8px;
+    letter-spacing:0.02em;
+  }
+
+  input[type=password], input[type=text]{
+    width:100%;
+    background: var(--panel-raised);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 12px 14px;
+    color: var(--paper);
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 15px;
+    letter-spacing: 0.12em;
+    outline: none;
+    transition: border-color .15s;
+  }
+  input[type=password]:focus, input[type=text]:focus{
+    border-color: var(--brass);
+  }
+
+  .btn{
+    width:100%;
+    margin-top: 22px;
+    padding: 13px 16px;
+    border-radius: 8px;
+    border: none;
+    background: var(--brass);
+    color: #1a1508;
+    font-weight:600;
+    font-size: 14.5px;
+    cursor:pointer;
+    transition: background .15s, transform .1s, opacity .15s;
+    font-family: 'IBM Plex Sans KR', sans-serif;
+  }
+  .btn:hover:not(:disabled){ background: var(--brass-bright); }
+  .btn:active:not(:disabled){ transform: scale(0.99); }
+  .btn:disabled{ opacity:0.5; cursor:not-allowed; }
+
+  .btn.secondary{
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--paper);
+  }
+  .btn.secondary:hover:not(:disabled){ border-color: var(--rust); color: var(--rust-bright); background: rgba(193,89,75,0.08); }
+
+  .btn-row{ display:flex; gap:10px; }
+  .btn-row .btn{ margin-top:0; }
+
+  .msg{
+    margin-top:16px;
+    font-size:13px;
+    padding: 10px 12px;
+    border-radius:8px;
+    line-height:1.5;
+    display:none;
+  }
+  .msg.show{ display:block; }
+  .msg.error{ background: rgba(193,89,75,0.12); color: var(--rust-bright); border:1px solid rgba(193,89,75,0.3); }
+  .msg.success{ background: rgba(126,162,140,0.12); color: var(--sage); border:1px solid rgba(126,162,140,0.3); }
+
+  /* claim tag (result ticket) */
+  .tag{
+    margin-top:22px;
+    background: var(--panel-raised);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 18px 18px 16px;
+    position:relative;
+    background-image: repeating-linear-gradient(to bottom, transparent 0 6px, var(--line) 6px 7px);
+    background-repeat: no-repeat;
+    background-position: 78px 0;
+    background-size: 1px 100%;
+  }
+  .tag::before{
+    content:"";
+    position:absolute;
+    left:71px; top:-8px;
+    width:16px; height:16px;
+    background: var(--panel);
+    border-radius:50%;
+    border: 1px solid var(--line);
+  }
+  .tag::after{
+    content:"";
+    position:absolute;
+    left:71px; bottom:-8px;
+    width:16px; height:16px;
+    background: var(--panel);
+    border-radius:50%;
+    border: 1px solid var(--line);
+  }
+  .tag .id-block{
+    display:inline-block;
+    width:64px;
+    vertical-align:top;
+    text-align:center;
+    padding-top:4px;
+  }
+  .tag .id-block span{
+    display:block;
+    font-size:9px;
+    color: var(--mute);
+    letter-spacing:0.1em;
+  }
+  .tag .id-block strong{
+    font-family:'Space Grotesk', sans-serif;
+    font-size: 22px;
+    color: var(--brass-bright);
+  }
+  .tag .link-block{
+    display:inline-block;
+    width: calc(100% - 92px);
+    padding-left:18px;
+    vertical-align:top;
+  }
+  .tag .link-block label{
+    display:block;
+    font-size:10.5px;
+    color: var(--mute);
+    margin-bottom:6px;
+    letter-spacing:0.06em;
+  }
+  .tag .link-row{
+    display:flex;
+    gap:8px;
+  }
+  .tag .link-row input{
+    flex:1;
+    font-size:12px;
+    padding:9px 10px;
+    letter-spacing:0;
+  }
+  .tag .link-row button{
+    flex-shrink:0;
+    background: var(--brass);
+    border:none;
+    color:#1a1508;
+    font-weight:600;
+    font-size:12px;
+    border-radius:7px;
+    padding: 0 14px;
+    cursor:pointer;
+  }
+  .tag .link-row button:hover{ background: var(--brass-bright); }
+  .tag .warn{
+    margin-top:12px;
+    font-size:11.5px;
+    color: var(--mute);
+    line-height:1.5;
+  }
+
+  .filename-display{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+    color: var(--brass-bright);
+    background: var(--panel-raised);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding: 12px 14px;
+    margin-bottom: 4px;
+    word-break: break-all;
+  }
+
+  footer{
+    margin-top: 30px;
+    font-size:11.5px;
+    color: var(--mute);
+    text-align:center;
+    max-width:460px;
+    line-height:1.6;
+  }
+
+  .hidden{ display:none !important; }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ transition:none !important; }
+  }
+</style>
 </head>
 <body>
-  <h2>1. 파일 업로드</h2>
-  <input type="file" id="fileInput" />
-  <button onclick="uploadFile()">업로드</button>
 
-  <hr />
+  <div class="brand">
+    <div class="dial"></div>
+    <div>
+      <span>자물쇠함</span>
+      <small>PASSWORD-LOCKED FILE DROP</small>
+    </div>
+  </div>
 
-  <h2>2. 저장된 파일 목록</h2>
-  <button onclick="fetchFileList()">목록 새로고침</button>
-  <ul id="fileList">
-    <li>목록 불러오는 중...</li>
-  </ul>
+  <main>
 
-  <script>
-    const SUPABASE_URL = 'https://pwuqfbhytlbhzfslupwq.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB3dXFmYmh5dGxiaHpmc2x1cHdxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU5ODQ5ODIsImV4cCI6MjEwMTU2MDk4Mn0.I9_o6bjsFUxu0HKUpAi3-MeedYfaEL1iXe_0MTOuMf4';
+    <!-- ============ 업로드 화면 ============ -->
+    <section id="view-upload" class="panel hidden">
+      <div class="corner-l"></div><div class="corner-r"></div>
+      <h1>파일을 넣고 잠그세요</h1>
+      <p class="sub">파일을 올리고 비밀번호를 정하면, 그 비밀번호를 아는 사람만 파일을 열어볼 수 있는 링크가 생성돼요.</p>
 
-    // CDN 전역 객체(window.supabase)와 변수명이 겹치지 않도록 supabaseClient로 변경
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    const BUCKET_NAME = 'uploads';
+      <div class="dropzone" id="dropzone">
+        <div class="slot"></div>
+        <p id="dropzone-text">클릭하거나 파일을 끌어다 놓으세요</p>
+        <span id="dropzone-sub">최대 50MB</span>
+        <input type="file" id="file-input" />
+      </div>
 
-    // 페이지 로드 시 파일 목록 자동 조회
-    window.addEventListener('DOMContentLoaded', fetchFileList);
+      <label class="field-label">비밀번호 (4자 이상)</label>
+      <input type="password" id="upload-password" placeholder="••••••••" autocomplete="new-password" />
 
-    // 1. 파일 업로드
-    async function uploadFile() {
-      const fileInput = document.getElementById('fileInput');
-      const file = fileInput.files[0];
-      if (!file) return alert('파일을 선택해주세요.');
+      <button class="btn" id="upload-btn">넣고 잠그기</button>
 
-      const filePath = `${Date.now()}_${file.name}`;
+      <div class="msg" id="upload-msg"></div>
 
-      const { data, error } = await supabaseClient.storage
-        .from(BUCKET_NAME)
-        .upload(filePath, file);
+      <div class="tag hidden" id="result-tag">
+        <div class="id-block">
+          <span>NO.</span>
+          <strong id="result-id-short">····</strong>
+        </div>
+        <div class="link-block">
+          <label>공유 링크 — 이 링크와 비밀번호를 전달하세요</label>
+          <div class="link-row">
+            <input type="text" id="result-link" readonly />
+            <button id="copy-btn">복사</button>
+          </div>
+        </div>
+        <div class="warn">⚠ 이 링크는 다시 보여지지 않아요. 지금 복사해서 전달할 사람에게 보내주세요. 비밀번호는 별도로 알려줘야 해요.</div>
+      </div>
+    </section>
 
-      if (error) {
-        console.error('업로드 실패:', error);
-        alert('업로드 실패: ' + error.message);
-      } else {
-        alert('업로드 성공!');
-        fileInput.value = ''; // 입력창 초기화
-        fetchFileList(); // 목록 새로고침
-      }
+    <!-- ============ 수령 화면 ============ -->
+    <section id="view-open" class="panel hidden">
+      <div class="corner-l"></div><div class="corner-r"></div>
+      <h1>잠긴 파일이에요</h1>
+      <p class="sub">비밀번호를 입력하면 파일을 내려받거나, 보관함에서 치울 수 있어요.</p>
+
+      <label class="field-label">비밀번호</label>
+      <input type="password" id="open-password" placeholder="••••••••" autocomplete="off" />
+
+      <div class="btn-row" style="margin-top:22px;">
+        <button class="btn" id="download-btn">꺼내기 (다운로드)</button>
+      </div>
+      <button class="btn secondary" id="delete-btn" style="margin-top:10px;">보관함에서 치우기 (삭제)</button>
+
+      <div class="msg" id="open-msg"></div>
+    </section>
+
+  </main>
+
+  <footer>
+    비밀번호는 서버에 원문으로 저장되지 않고 해시로만 저장돼요.<br>
+    파일은 비밀번호를 아는 사람만 꺼내거나 치울 수 있어요.
+  </footer>
+
+<script>
+  // ---- Supabase 연결 정보 ----
+  const SUPABASE_URL = "https://tqobntjhbaletlknbdoq.supabase.co";
+  const ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRxb2JudGpoYmFsZXRsa25iZG9xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU5Njg0MzQsImV4cCI6MjEwMTU0NDQzNH0.EPh5WrqRQsr4aIEjuJGkk_5SIkRMt0LSnBfU3LonkcQ";
+  const FN_BASE = `${SUPABASE_URL}/functions/v1`;
+  const MAX_BYTES = 50 * 1024 * 1024;
+
+  const $ = (id) => document.getElementById(id);
+
+  function showMsg(el, text, type){
+    el.textContent = text;
+    el.className = `msg show ${type}`;
+  }
+  function clearMsg(el){
+    el.className = "msg";
+  }
+
+  // ---------- 라우팅 ----------
+  const params = new URLSearchParams(location.search);
+  const shareId = params.get("id");
+
+  if (shareId){
+    $("view-open").classList.remove("hidden");
+    initOpenView(shareId);
+  } else {
+    $("view-upload").classList.remove("hidden");
+    initUploadView();
+  }
+
+  // ---------- 업로드 화면 ----------
+  function initUploadView(){
+    const dropzone = $("dropzone");
+    const fileInput = $("file-input");
+    const dzText = $("dropzone-text");
+    const dzSub = $("dropzone-sub");
+    const uploadBtn = $("upload-btn");
+    const msg = $("upload-msg");
+    let selectedFile = null;
+
+    dropzone.addEventListener("click", () => fileInput.click());
+    dropzone.addEventListener("dragover", (e) => { e.preventDefault(); dropzone.classList.add("drag"); });
+    dropzone.addEventListener("dragleave", () => dropzone.classList.remove("drag"));
+    dropzone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      dropzone.classList.remove("drag");
+      if (e.dataTransfer.files[0]) setFile(e.dataTransfer.files[0]);
+    });
+    fileInput.addEventListener("change", () => {
+      if (fileInput.files[0]) setFile(fileInput.files[0]);
+    });
+
+    function setFile(file){
+      selectedFile = file;
+      dzText.textContent = file.name;
+      dzText.classList.add("file-name");
+      dzSub.textContent = `${(file.size / 1024 / 1024).toFixed(2)} MB`;
+      clearMsg(msg);
     }
 
-    // 2. 파일 목록 가져오기
-    async function fetchFileList() {
-      const listElement = document.getElementById('fileList');
-      listElement.innerHTML = '<li>목록 불러오는 중...</li>';
+    uploadBtn.addEventListener("click", async () => {
+      clearMsg(msg);
+      const password = $("upload-password").value;
 
-      const { data, error } = await supabaseClient.storage
-        .from(BUCKET_NAME)
-        .list('', {
-          limit: 100,
-          sortBy: { column: 'created_at', order: 'desc' },
+      if (!selectedFile){
+        showMsg(msg, "파일을 먼저 선택해주세요.", "error");
+        return;
+      }
+      if (password.length < 4){
+        showMsg(msg, "비밀번호는 4자 이상으로 정해주세요.", "error");
+        return;
+      }
+      if (selectedFile.size > MAX_BYTES){
+        showMsg(msg, "파일이 너무 커요. 최대 50MB까지 올릴 수 있어요.", "error");
+        return;
+      }
+
+      uploadBtn.disabled = true;
+      uploadBtn.textContent = "넣는 중…";
+
+      try{
+        const fd = new FormData();
+        fd.append("file", selectedFile);
+        fd.append("password", password);
+
+        const res = await fetch(`${FN_BASE}/upload`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${ANON_KEY}` },
+          body: fd
         });
+        const data = await res.json();
 
-      if (error) {
-        console.error('목록 불러오기 실패:', error);
-        listElement.innerHTML = '<li>목록을 불러오지 못했습니다. Storage RLS 권한을 확인해 주세요.</li>';
+        if (!res.ok || data.error){
+          showMsg(msg, data.error || "업로드에 실패했어요.", "error");
+          return;
+        }
+
+        const link = `${location.origin}${location.pathname}?id=${data.id}`;
+        $("result-id-short").textContent = data.id.slice(0, 4);
+        $("result-link").value = link;
+        $("result-tag").classList.remove("hidden");
+        showMsg(msg, "잠갔어요. 아래 링크와 비밀번호를 전달하세요.", "success");
+      } catch(e){
+        showMsg(msg, "네트워크 오류가 발생했어요. 잠시 후 다시 시도해주세요.", "error");
+      } finally {
+        uploadBtn.disabled = false;
+        uploadBtn.textContent = "넣고 잠그기";
+      }
+    });
+
+    $("copy-btn").addEventListener("click", () => {
+      const input = $("result-link");
+      input.select();
+      navigator.clipboard?.writeText(input.value);
+      $("copy-btn").textContent = "복사됨";
+      setTimeout(() => $("copy-btn").textContent = "복사", 1500);
+    });
+  }
+
+  // ---------- 수령 화면 ----------
+  function initOpenView(id){
+    const msg = $("open-msg");
+    const passwordInput = $("open-password");
+    const downloadBtn = $("download-btn");
+    const deleteBtn = $("delete-btn");
+
+    downloadBtn.addEventListener("click", async () => {
+      clearMsg(msg);
+      const password = passwordInput.value;
+      if (!password){
+        showMsg(msg, "비밀번호를 입력해주세요.", "error");
         return;
       }
 
-      if (!data || data.length === 0) {
-        listElement.innerHTML = '<li>업로드된 파일이 없습니다.</li>';
+      downloadBtn.disabled = true;
+      downloadBtn.textContent = "확인 중…";
+
+      try{
+        const res = await fetch(`${FN_BASE}/download`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${ANON_KEY}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ id, password })
+        });
+        const data = await res.json();
+
+        if (!res.ok || data.error){
+          showMsg(msg, data.error || "비밀번호가 올바르지 않아요.", "error");
+          return;
+        }
+
+        showMsg(msg, `"${data.filename}" 다운로드를 시작해요.`, "success");
+        window.location.href = data.url;
+      } catch(e){
+        showMsg(msg, "네트워크 오류가 발생했어요. 잠시 후 다시 시도해주세요.", "error");
+      } finally {
+        downloadBtn.disabled = false;
+        downloadBtn.textContent = "꺼내기 (다운로드)";
+      }
+    });
+
+    deleteBtn.addEventListener("click", async () => {
+      clearMsg(msg);
+      const password = passwordInput.value;
+      if (!password){
+        showMsg(msg, "비밀번호를 입력해주세요.", "error");
+        return;
+      }
+      if (!confirm("정말 이 파일을 보관함에서 치울까요? 이 작업은 되돌릴 수 없어요.")){
         return;
       }
 
-      listElement.innerHTML = '';
-      data.forEach((file) => {
-        // .list() 결과 중 디렉터리가 아닌 파일만 표시
-        if (file.name === '.emptyFolderPlaceholder') return;
+      deleteBtn.disabled = true;
+      deleteBtn.textContent = "치우는 중…";
 
-        const li = document.createElement('li');
-        li.style.marginBottom = '8px';
+      try{
+        const res = await fetch(`${FN_BASE}/delete`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${ANON_KEY}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ id, password })
+        });
+        const data = await res.json();
 
-        // 원본 파일명 표시 (타임스탬프 제거)
-        const originalName = file.name.split('_').slice(1).join('_') || file.name;
+        if (!res.ok || data.error){
+          showMsg(msg, data.error || "비밀번호가 올바르지 않아요.", "error");
+          return;
+        }
 
-        li.innerHTML = `
-          <strong>${originalName}</strong> 
-          <button onclick="downloadFile('${file.name}')">다운로드</button>
-          <button onclick="openPublicLink('${file.name}')">바로 열기</button>
-        `;
-        listElement.appendChild(li);
-      });
-    }
-
-    // 3. 선택 파일 다운로드
-    async function downloadFile(path) {
-      const { data, error } = await supabaseClient.storage
-        .from(BUCKET_NAME)
-        .download(path);
-
-      if (error) {
-        alert('다운로드 실패: ' + error.message);
-        return;
+        showMsg(msg, "파일을 보관함에서 치웠어요. 이 링크는 더 이상 쓸 수 없어요.", "success");
+        downloadBtn.disabled = true;
+        deleteBtn.disabled = true;
+        passwordInput.disabled = true;
+      } catch(e){
+        showMsg(msg, "네트워크 오류가 발생했어요. 잠시 후 다시 시도해주세요.", "error");
+        deleteBtn.disabled = false;
+        deleteBtn.textContent = "보관함에서 치우기 (삭제)";
       }
+    });
+  }
+</script>
 
-      const url = URL.createObjectURL(data);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = path.split('_').slice(1).join('_') || path;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }
-
-    // 4. 새 탭에서 열기
-    function openPublicLink(path) {
-      const { data } = supabaseClient.storage
-        .from(BUCKET_NAME)
-        .getPublicUrl(path);
-
-      window.open(data.publicUrl, '_blank');
-    }
-  </script>
 </body>
 </html>
