@@ -13,29 +13,32 @@
 
   <hr />
 
-  <h2>2. 파일 다운로드 (다른 브라우저에서 사용)</h2>
-  <input type="text" id="filePathInput" placeholder="파일명 입력 (예: 1712345678_test.png)" style="width: 300px;" />
-  <button onclick="downloadFile()">다운로드</button>
-  <button onclick="getPublicLink()">웹에서 바로 열기/링크 복사</button>
+  <h2>2. 저장된 파일 목록</h2>
+  <button onclick="fetchFileList()">목록 새로고침</button>
+  <ul id="fileList">
+    <li>목록 불러오는 중...</li>
+  </ul>
 
   <script>
-    // Supabase 정보 설정 (프로젝트 Settings -> API에서 확인)
     const SUPABASE_URL = 'https://pwuqfbhytlbhzfslupwq.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB3dXFmYmh5dGxiaHpmc2x1cHdxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU5ODQ5ODIsImV4cCI6MjEwMTU2MDk4Mn0.I9_o6bjsFUxu0HKUpAi3-MeedYfaEL1iXe_0MTOuMf4';
-    
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // CDN 전역 객체(window.supabase)와 변수명이 겹치지 않도록 supabaseClient로 변경
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     const BUCKET_NAME = 'uploads';
 
-    // 파일 업로드 함수
+    // 페이지 로드 시 파일 목록 자동 조회
+    window.addEventListener('DOMContentLoaded', fetchFileList);
+
+    // 1. 파일 업로드
     async function uploadFile() {
       const fileInput = document.getElementById('fileInput');
       const file = fileInput.files[0];
       if (!file) return alert('파일을 선택해주세요.');
 
-      // 파일명 중복 방지를 위해 타임스탬프 추가
       const filePath = `${Date.now()}_${file.name}`;
 
-      const { data, error } = await supabase.storage
+      const { data, error } = await supabaseClient.storage
         .from(BUCKET_NAME)
         .upload(filePath, file);
 
@@ -43,43 +46,79 @@
         console.error('업로드 실패:', error);
         alert('업로드 실패: ' + error.message);
       } else {
-        alert(`업로드 성공!\n파일명: ${data.path}`);
-        console.log('Uploaded File Path:', data.path);
+        alert('업로드 성공!');
+        fileInput.value = ''; // 입력창 초기화
+        fetchFileList(); // 목록 새로고침
       }
     }
 
-    // Blob 기반 강제 다운로드 함수
-    async function downloadFile() {
-      const path = document.getElementById('filePathInput').value;
-      if (!path) return alert('파일명을 입력해주세요.');
+    // 2. 파일 목록 가져오기
+    async function fetchFileList() {
+      const listElement = document.getElementById('fileList');
+      listElement.innerHTML = '<li>목록 불러오는 중...</li>';
 
-      const { data, error } = await supabase.storage
+      const { data, error } = await supabaseClient.storage
+        .from(BUCKET_NAME)
+        .list('', {
+          limit: 100,
+          sortBy: { column: 'created_at', order: 'desc' },
+        });
+
+      if (error) {
+        console.error('목록 불러오기 실패:', error);
+        listElement.innerHTML = '<li>목록을 불러오지 못했습니다. Storage RLS 권한을 확인해 주세요.</li>';
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        listElement.innerHTML = '<li>업로드된 파일이 없습니다.</li>';
+        return;
+      }
+
+      listElement.innerHTML = '';
+      data.forEach((file) => {
+        // .list() 결과 중 디렉터리가 아닌 파일만 표시
+        if (file.name === '.emptyFolderPlaceholder') return;
+
+        const li = document.createElement('li');
+        li.style.marginBottom = '8px';
+
+        // 원본 파일명 표시 (타임스탬프 제거)
+        const originalName = file.name.split('_').slice(1).join('_') || file.name;
+
+        li.innerHTML = `
+          <strong>${originalName}</strong> 
+          <button onclick="downloadFile('${file.name}')">다운로드</button>
+          <button onclick="openPublicLink('${file.name}')">바로 열기</button>
+        `;
+        listElement.appendChild(li);
+      });
+    }
+
+    // 3. 선택 파일 다운로드
+    async function downloadFile(path) {
+      const { data, error } = await supabaseClient.storage
         .from(BUCKET_NAME)
         .download(path);
 
       if (error) {
-        console.error('다운로드 실패:', error);
         alert('다운로드 실패: ' + error.message);
         return;
       }
 
-      // 브라우저 다운로드 트리거
       const url = URL.createObjectURL(data);
       const a = document.createElement('a');
       a.href = url;
-      a.download = path.split('_').slice(1).join('_') || path; // 타임스탬프 제외 원본 파일명 설정
+      a.download = path.split('_').slice(1).join('_') || path;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     }
 
-    // Public URL 추출 함수 (바로 보기 / 링크 공유용)
-    function getPublicLink() {
-      const path = document.getElementById('filePathInput').value;
-      if (!path) return alert('파일명을 입력해주세요.');
-
-      const { data } = supabase.storage
+    // 4. 새 탭에서 열기
+    function openPublicLink(path) {
+      const { data } = supabaseClient.storage
         .from(BUCKET_NAME)
         .getPublicUrl(path);
 
