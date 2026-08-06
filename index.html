@@ -111,6 +111,12 @@
     margin: 0 0 6px;
     font-weight:600;
   }
+  h2{
+    font-family:'Space Grotesk', sans-serif;
+    font-size: 17px;
+    margin: 0;
+    font-weight:600;
+  }
   .sub{
     color: var(--mute);
     font-size: 13.5px;
@@ -194,7 +200,7 @@
   }
   .btn.secondary:hover:not(:disabled){ border-color: var(--rust); color: var(--rust-bright); background: rgba(193,89,75,0.08); }
 
-  .btn-row{ display:flex; gap:10px; }
+  .btn-row{ display:flex; gap:10px; margin-top:14px; }
   .btn-row .btn{ margin-top:0; }
 
   .msg{
@@ -209,111 +215,88 @@
   .msg.error{ background: rgba(193,89,75,0.12); color: var(--rust-bright); border:1px solid rgba(193,89,75,0.3); }
   .msg.success{ background: rgba(126,162,140,0.12); color: var(--sage); border:1px solid rgba(126,162,140,0.3); }
 
-  /* claim tag (result ticket) */
-  .tag{
-    margin-top:22px;
-    background: var(--panel-raised);
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    padding: 18px 18px 16px;
-    position:relative;
-    background-image: repeating-linear-gradient(to bottom, transparent 0 6px, var(--line) 6px 7px);
-    background-repeat: no-repeat;
-    background-position: 78px 0;
-    background-size: 1px 100%;
-  }
-  .tag::before{
-    content:"";
-    position:absolute;
-    left:71px; top:-8px;
-    width:16px; height:16px;
-    background: var(--panel);
-    border-radius:50%;
-    border: 1px solid var(--line);
-  }
-  .tag::after{
-    content:"";
-    position:absolute;
-    left:71px; bottom:-8px;
-    width:16px; height:16px;
-    background: var(--panel);
-    border-radius:50%;
-    border: 1px solid var(--line);
-  }
-  .tag .id-block{
-    display:inline-block;
-    width:64px;
-    vertical-align:top;
-    text-align:center;
-    padding-top:4px;
-  }
-  .tag .id-block span{
-    display:block;
-    font-size:9px;
-    color: var(--mute);
-    letter-spacing:0.1em;
-  }
-  .tag .id-block strong{
-    font-family:'Space Grotesk', sans-serif;
-    font-size: 22px;
-    color: var(--brass-bright);
-  }
-  .tag .link-block{
-    display:inline-block;
-    width: calc(100% - 92px);
-    padding-left:18px;
-    vertical-align:top;
-  }
-  .tag .link-block label{
-    display:block;
-    font-size:10.5px;
-    color: var(--mute);
-    margin-bottom:6px;
-    letter-spacing:0.06em;
-  }
-  .tag .link-row{
+  /* ---- locker list ---- */
+  .locker-section{ margin-top: 36px; }
+  .locker-head{
     display:flex;
-    gap:8px;
+    align-items:baseline;
+    justify-content:space-between;
+    padding: 0 4px 14px;
   }
-  .tag .link-row input{
-    flex:1;
-    font-size:12px;
-    padding:9px 10px;
-    letter-spacing:0;
-  }
-  .tag .link-row button{
-    flex-shrink:0;
-    background: var(--brass);
-    border:none;
-    color:#1a1508;
-    font-weight:600;
-    font-size:12px;
-    border-radius:7px;
-    padding: 0 14px;
-    cursor:pointer;
-  }
-  .tag .link-row button:hover{ background: var(--brass-bright); }
-  .tag .warn{
-    margin-top:12px;
+  .locker-count{
+    font-family:'IBM Plex Mono', monospace;
     font-size:11.5px;
     color: var(--mute);
-    line-height:1.5;
   }
 
-  .filename-display{
-    font-family:'IBM Plex Mono', monospace;
+  .list-empty{
+    text-align:center;
+    color: var(--mute);
     font-size:13px;
-    color: var(--brass-bright);
+    padding: 30px 20px;
+    border: 1px dashed var(--line);
+    border-radius:10px;
+  }
+
+  .list-item{
+    border:1px solid var(--line);
+    border-radius:10px;
+    margin-bottom:10px;
+    background: var(--panel);
+    overflow:hidden;
+  }
+  .list-item-head{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding: 13px 15px;
+    cursor:pointer;
+  }
+  .list-item-head:hover{ background: var(--panel-raised); }
+  .list-item-num{
+    width:32px; height:32px;
+    border-radius:7px;
     background: var(--panel-raised);
     border:1px solid var(--line);
-    border-radius:8px;
-    padding: 12px 14px;
-    margin-bottom: 4px;
-    word-break: break-all;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    color: var(--brass-bright);
+    flex-shrink:0;
   }
+  .list-item-info{ flex:1; min-width:0; }
+  .list-item-info .fname{
+    font-size:13.5px;
+    color: var(--paper);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .list-item-info .fmeta{
+    font-size:11px;
+    color: var(--mute);
+    margin-top:3px;
+    font-family:'IBM Plex Mono', monospace;
+  }
+  .list-item-chevron{
+    color: var(--mute);
+    font-size:16px;
+    transition: transform .15s, color .15s;
+    flex-shrink:0;
+  }
+  .list-item.open .list-item-chevron{ transform: rotate(90deg); color: var(--brass); }
+
+  .list-item-body{
+    max-height:0;
+    overflow:hidden;
+    transition: max-height .2s ease;
+  }
+  .list-item.open .list-item-body{ max-height: 300px; border-top: 1px solid var(--line); }
+  .list-item-body-inner{ padding: 15px; }
+  .list-item-body-inner .field-label{ margin-top:0; }
 
   footer{
-    margin-top: 30px;
+    margin-top: 34px;
     font-size:11.5px;
     color: var(--mute);
     text-align:center;
@@ -340,11 +323,11 @@
 
   <main>
 
-    <!-- ============ 업로드 화면 ============ -->
-    <section id="view-upload" class="panel hidden">
+    <!-- ============ 업로드 패널 ============ -->
+    <section class="panel">
       <div class="corner-l"></div><div class="corner-r"></div>
       <h1>파일을 넣고 잠그세요</h1>
-      <p class="sub">파일을 올리고 비밀번호를 정하면, 그 비밀번호를 아는 사람만 파일을 열어볼 수 있는 링크가 생성돼요.</p>
+      <p class="sub">파일을 올리고 비밀번호를 정하면 보관함 목록에 추가돼요. 목록에서 파일을 고르고 같은 비밀번호를 입력하면 누구든 열어볼 수 있어요.</p>
 
       <div class="dropzone" id="dropzone">
         <div class="slot"></div>
@@ -359,38 +342,15 @@
       <button class="btn" id="upload-btn">넣고 잠그기</button>
 
       <div class="msg" id="upload-msg"></div>
-
-      <div class="tag hidden" id="result-tag">
-        <div class="id-block">
-          <span>NO.</span>
-          <strong id="result-id-short">····</strong>
-        </div>
-        <div class="link-block">
-          <label>공유 링크 — 이 링크와 비밀번호를 전달하세요</label>
-          <div class="link-row">
-            <input type="text" id="result-link" readonly />
-            <button id="copy-btn">복사</button>
-          </div>
-        </div>
-        <div class="warn">⚠ 이 링크는 다시 보여지지 않아요. 지금 복사해서 전달할 사람에게 보내주세요. 비밀번호는 별도로 알려줘야 해요.</div>
-      </div>
     </section>
 
-    <!-- ============ 수령 화면 ============ -->
-    <section id="view-open" class="panel hidden">
-      <div class="corner-l"></div><div class="corner-r"></div>
-      <h1>잠긴 파일이에요</h1>
-      <p class="sub">비밀번호를 입력하면 파일을 내려받거나, 보관함에서 치울 수 있어요.</p>
-
-      <label class="field-label">비밀번호</label>
-      <input type="password" id="open-password" placeholder="••••••••" autocomplete="off" />
-
-      <div class="btn-row" style="margin-top:22px;">
-        <button class="btn" id="download-btn">꺼내기 (다운로드)</button>
+    <!-- ============ 보관함 목록 ============ -->
+    <section class="locker-section">
+      <div class="locker-head">
+        <h2>보관함</h2>
+        <span class="locker-count" id="locker-count">불러오는 중…</span>
       </div>
-      <button class="btn secondary" id="delete-btn" style="margin-top:10px;">보관함에서 치우기 (삭제)</button>
-
-      <div class="msg" id="open-msg"></div>
+      <div id="locker-list"></div>
     </section>
 
   </main>
@@ -406,6 +366,7 @@
   const ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRxb2JudGpoYmFsZXRsa25iZG9xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU5Njg0MzQsImV4cCI6MjEwMTU0NDQzNH0.EPh5WrqRQsr4aIEjuJGkk_5SIkRMt0LSnBfU3LonkcQ";
   const FN_BASE = `${SUPABASE_URL}/functions/v1`;
   const MAX_BYTES = 50 * 1024 * 1024;
+  const AUTH_HEADERS = { Authorization: `Bearer ${ANON_KEY}` };
 
   const $ = (id) => document.getElementById(id);
 
@@ -416,21 +377,19 @@
   function clearMsg(el){
     el.className = "msg";
   }
-
-  // ---------- 라우팅 ----------
-  const params = new URLSearchParams(location.search);
-  const shareId = params.get("id");
-
-  if (shareId){
-    $("view-open").classList.remove("hidden");
-    initOpenView(shareId);
-  } else {
-    $("view-upload").classList.remove("hidden");
-    initUploadView();
+  function formatSize(bytes){
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+  }
+  function formatDate(iso){
+    const d = new Date(iso);
+    const pad = (n) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
   }
 
-  // ---------- 업로드 화면 ----------
-  function initUploadView(){
+  // ---------- 업로드 ----------
+  function initUpload(){
     const dropzone = $("dropzone");
     const fileInput = $("file-input");
     const dzText = $("dropzone-text");
@@ -458,10 +417,18 @@
       dzSub.textContent = `${(file.size / 1024 / 1024).toFixed(2)} MB`;
       clearMsg(msg);
     }
+    function resetDropzone(){
+      selectedFile = null;
+      fileInput.value = "";
+      dzText.textContent = "클릭하거나 파일을 끌어다 놓으세요";
+      dzText.classList.remove("file-name");
+      dzSub.textContent = "최대 50MB";
+    }
 
     uploadBtn.addEventListener("click", async () => {
       clearMsg(msg);
-      const password = $("upload-password").value;
+      const passwordInput = $("upload-password");
+      const password = passwordInput.value;
 
       if (!selectedFile){
         showMsg(msg, "파일을 먼저 선택해주세요.", "error");
@@ -486,7 +453,7 @@
 
         const res = await fetch(`${FN_BASE}/upload`, {
           method: "POST",
-          headers: { Authorization: `Bearer ${ANON_KEY}` },
+          headers: AUTH_HEADERS,
           body: fd
         });
         const data = await res.json();
@@ -496,11 +463,10 @@
           return;
         }
 
-        const link = `${location.origin}${location.pathname}?id=${data.id}`;
-        $("result-id-short").textContent = data.id.slice(0, 4);
-        $("result-link").value = link;
-        $("result-tag").classList.remove("hidden");
-        showMsg(msg, "잠갔어요. 아래 링크와 비밀번호를 전달하세요.", "success");
+        showMsg(msg, "보관함에 넣고 잠갔어요. 아래 목록에서 확인하세요.", "success");
+        resetDropzone();
+        passwordInput.value = "";
+        loadList();
       } catch(e){
         showMsg(msg, "네트워크 오류가 발생했어요. 잠시 후 다시 시도해주세요.", "error");
       } finally {
@@ -508,95 +474,228 @@
         uploadBtn.textContent = "넣고 잠그기";
       }
     });
-
-    $("copy-btn").addEventListener("click", () => {
-      const input = $("result-link");
-      input.select();
-      navigator.clipboard?.writeText(input.value);
-      $("copy-btn").textContent = "복사됨";
-      setTimeout(() => $("copy-btn").textContent = "복사", 1500);
-    });
   }
 
-  // ---------- 수령 화면 ----------
-  function initOpenView(id){
-    const msg = $("open-msg");
-    const passwordInput = $("open-password");
-    const downloadBtn = $("download-btn");
-    const deleteBtn = $("delete-btn");
+  // ---------- 보관함 목록 ----------
+  let openItemId = null;
 
-    downloadBtn.addEventListener("click", async () => {
-      clearMsg(msg);
-      const password = passwordInput.value;
-      if (!password){
-        showMsg(msg, "비밀번호를 입력해주세요.", "error");
+  async function loadList(){
+    const countEl = $("locker-count");
+    const listEl = $("locker-list");
+    countEl.textContent = "불러오는 중…";
+
+    try{
+      const res = await fetch(`${FN_BASE}/list`, { headers: AUTH_HEADERS });
+      const data = await res.json();
+
+      if (!res.ok || data.error){
+        countEl.textContent = "";
+        listEl.innerHTML = "";
+        const empty = document.createElement("div");
+        empty.className = "list-empty";
+        empty.textContent = "목록을 불러오지 못했어요.";
+        listEl.appendChild(empty);
         return;
       }
 
+      renderList(data.items || []);
+    } catch(e){
+      countEl.textContent = "";
+      listEl.innerHTML = "";
+      const empty = document.createElement("div");
+      empty.className = "list-empty";
+      empty.textContent = "네트워크 오류로 목록을 불러오지 못했어요.";
+      listEl.appendChild(empty);
+    }
+  }
+
+  function renderList(items){
+    const countEl = $("locker-count");
+    const listEl = $("locker-list");
+    countEl.textContent = `${items.length}개`;
+    listEl.innerHTML = "";
+
+    if (items.length === 0){
+      const empty = document.createElement("div");
+      empty.className = "list-empty";
+      empty.textContent = "아직 보관함이 비어있어요. 위에서 파일을 넣어보세요.";
+      listEl.appendChild(empty);
+      return;
+    }
+
+    items.forEach((item, index) => {
+      listEl.appendChild(buildListItem(item, index));
+    });
+  }
+
+  function buildListItem(item, index){
+    const wrap = document.createElement("div");
+    wrap.className = "list-item";
+    wrap.dataset.id = item.id;
+
+    // ---- head (클릭해서 펼치기) ----
+    const head = document.createElement("div");
+    head.className = "list-item-head";
+
+    const num = document.createElement("div");
+    num.className = "list-item-num";
+    num.textContent = String(index + 1).padStart(2, "0");
+
+    const info = document.createElement("div");
+    info.className = "list-item-info";
+    const fname = document.createElement("div");
+    fname.className = "fname";
+    fname.textContent = item.filename; // textContent로만 넣어서 XSS 방지
+    const fmeta = document.createElement("div");
+    fmeta.className = "fmeta";
+    fmeta.textContent = `${formatSize(item.size || 0)} · ${formatDate(item.created_at)}`;
+    info.appendChild(fname);
+    info.appendChild(fmeta);
+
+    const chevron = document.createElement("div");
+    chevron.className = "list-item-chevron";
+    chevron.textContent = "›";
+
+    head.appendChild(num);
+    head.appendChild(info);
+    head.appendChild(chevron);
+
+    // ---- body (비밀번호 + 다운로드/삭제) ----
+    const body = document.createElement("div");
+    body.className = "list-item-body";
+
+    const bodyInner = document.createElement("div");
+    bodyInner.className = "list-item-body-inner";
+
+    const label = document.createElement("label");
+    label.className = "field-label";
+    label.textContent = "비밀번호";
+
+    const pwInput = document.createElement("input");
+    pwInput.type = "password";
+    pwInput.placeholder = "••••••••";
+    pwInput.autocomplete = "off";
+
+    const btnRow = document.createElement("div");
+    btnRow.className = "btn-row";
+
+    const downloadBtn = document.createElement("button");
+    downloadBtn.className = "btn";
+    downloadBtn.textContent = "꺼내기 (다운로드)";
+
+    const deleteBtn = document.createElement("button");
+    deleteBtn.className = "btn secondary";
+    deleteBtn.textContent = "치우기 (삭제)";
+
+    btnRow.appendChild(downloadBtn);
+    btnRow.appendChild(deleteBtn);
+
+    const itemMsg = document.createElement("div");
+    itemMsg.className = "msg";
+
+    bodyInner.appendChild(label);
+    bodyInner.appendChild(pwInput);
+    bodyInner.appendChild(btnRow);
+    bodyInner.appendChild(itemMsg);
+    body.appendChild(bodyInner);
+
+    wrap.appendChild(head);
+    wrap.appendChild(body);
+
+    head.addEventListener("click", () => {
+      const isOpen = wrap.classList.contains("open");
+      // 아코디언: 하나만 펼쳐지게
+      document.querySelectorAll(".list-item.open").forEach((el) => {
+        if (el !== wrap) el.classList.remove("open");
+      });
+      wrap.classList.toggle("open", !isOpen);
+      if (!isOpen) pwInput.focus();
+    });
+
+    downloadBtn.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      clearMsg(itemMsg);
+      const password = pwInput.value;
+      if (!password){
+        showMsg(itemMsg, "비밀번호를 입력해주세요.", "error");
+        return;
+      }
       downloadBtn.disabled = true;
       downloadBtn.textContent = "확인 중…";
-
       try{
         const res = await fetch(`${FN_BASE}/download`, {
           method: "POST",
-          headers: { Authorization: `Bearer ${ANON_KEY}`, "Content-Type": "application/json" },
-          body: JSON.stringify({ id, password })
+          headers: { ...AUTH_HEADERS, "Content-Type": "application/json" },
+          body: JSON.stringify({ id: item.id, password })
         });
         const data = await res.json();
-
         if (!res.ok || data.error){
-          showMsg(msg, data.error || "비밀번호가 올바르지 않아요.", "error");
+          showMsg(itemMsg, data.error || "비밀번호가 올바르지 않아요.", "error");
           return;
         }
-
-        showMsg(msg, `"${data.filename}" 다운로드를 시작해요.`, "success");
+        showMsg(itemMsg, `"${data.filename}" 다운로드를 시작해요.`, "success");
         window.location.href = data.url;
       } catch(e){
-        showMsg(msg, "네트워크 오류가 발생했어요. 잠시 후 다시 시도해주세요.", "error");
+        showMsg(itemMsg, "네트워크 오류가 발생했어요.", "error");
       } finally {
         downloadBtn.disabled = false;
         downloadBtn.textContent = "꺼내기 (다운로드)";
       }
     });
 
-    deleteBtn.addEventListener("click", async () => {
-      clearMsg(msg);
-      const password = passwordInput.value;
+    deleteBtn.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      clearMsg(itemMsg);
+      const password = pwInput.value;
       if (!password){
-        showMsg(msg, "비밀번호를 입력해주세요.", "error");
+        showMsg(itemMsg, "비밀번호를 입력해주세요.", "error");
         return;
       }
-      if (!confirm("정말 이 파일을 보관함에서 치울까요? 이 작업은 되돌릴 수 없어요.")){
+      if (!confirm(`"${item.filename}"을(를) 보관함에서 치울까요? 되돌릴 수 없어요.`)){
         return;
       }
-
       deleteBtn.disabled = true;
+      downloadBtn.disabled = true;
       deleteBtn.textContent = "치우는 중…";
-
       try{
         const res = await fetch(`${FN_BASE}/delete`, {
           method: "POST",
-          headers: { Authorization: `Bearer ${ANON_KEY}`, "Content-Type": "application/json" },
-          body: JSON.stringify({ id, password })
+          headers: { ...AUTH_HEADERS, "Content-Type": "application/json" },
+          body: JSON.stringify({ id: item.id, password })
         });
         const data = await res.json();
-
         if (!res.ok || data.error){
-          showMsg(msg, data.error || "비밀번호가 올바르지 않아요.", "error");
+          showMsg(itemMsg, data.error || "비밀번호가 올바르지 않아요.", "error");
+          deleteBtn.disabled = false;
+          downloadBtn.disabled = false;
+          deleteBtn.textContent = "치우기 (삭제)";
           return;
         }
-
-        showMsg(msg, "파일을 보관함에서 치웠어요. 이 링크는 더 이상 쓸 수 없어요.", "success");
-        downloadBtn.disabled = true;
-        deleteBtn.disabled = true;
-        passwordInput.disabled = true;
+        loadList();
       } catch(e){
-        showMsg(msg, "네트워크 오류가 발생했어요. 잠시 후 다시 시도해주세요.", "error");
+        showMsg(itemMsg, "네트워크 오류가 발생했어요.", "error");
         deleteBtn.disabled = false;
-        deleteBtn.textContent = "보관함에서 치우기 (삭제)";
+        downloadBtn.disabled = false;
+        deleteBtn.textContent = "치우기 (삭제)";
       }
     });
+
+    return wrap;
   }
+
+  // ---------- 개발자 도구 억제 (참고용 — 완전한 차단은 불가능) ----------
+  document.addEventListener("contextmenu", (e) => e.preventDefault());
+  document.addEventListener("keydown", (e) => {
+    const key = e.key.toLowerCase();
+    const blockCombo =
+      key === "f12" ||
+      ((e.ctrlKey || e.metaKey) && e.shiftKey && ["i", "j", "c"].includes(key)) ||
+      ((e.ctrlKey || e.metaKey) && key === "u");
+    if (blockCombo) e.preventDefault();
+  });
+
+  initUpload();
+  loadList();
 </script>
 
 </body>
